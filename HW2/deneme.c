@@ -9,11 +9,15 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #define NUM_THREADS 2
+#define mem(a, b) (2000 + ((b - a) / 1000 + 1) * 82)
+//2000 + ((b - a) / 1000 + 1) * 82
 struct args {
     int tid;
     int pid;
     int min_intval;
     int max_intval;
+    int* primes;
+    long prime_n;
 };
 void printThread(struct args* arg) {
     printf("Thread %d.%d: searching in %d-%d\n", arg->pid, arg->tid, arg->min_intval, arg->max_intval);
@@ -23,6 +27,8 @@ void printProcess(struct args* arg) {
 }
 void* func(void* arg) {
     struct args* targ = (struct args*)arg;
+    targ->prime_n = 0;
+    targ->primes = (int*)malloc(mem(targ->min_intval, targ->max_intval) * sizeof(int));
     //print(targ);
     for (int n = targ->min_intval; n <= targ->max_intval; n++) {
         int flag = 1;
@@ -34,9 +40,18 @@ void* func(void* arg) {
         }
 
         if (flag == 1) {
-            //printf("%d is a prime number\n", n);
+            targ->primes[targ->prime_n++] = n;
         }
     }
+    /*
+    printf("%d Found all Primes:\n", targ->tid);
+    printf("prime_n: %ld\n", targ->prime_n);
+    for (int i = 0; i < targ->prime_n; i++) {
+        printf("%d ", targ->primes[i]);
+    }
+    printf("%d Finished\n", targ->tid);
+    */
+    pthread_exit(targ);
 }
 
 void create_nthreads(int nt, long pid, struct args* arg) {
@@ -75,9 +90,14 @@ void create_nthreads(int nt, long pid, struct args* arg) {
     }
 
     pthread_attr_destroy(&attr);
-
     for (t = 0; t < NUM_THREADS; ++t) {
         rc = pthread_join(thread[t], &status);
+        struct args* temp = status;
+        printf("RETURN VALUE: %ld\n", (long)temp->prime_n);
+        for (int i = 0; i < temp->prime_n; i++) {
+            printf("%d ", temp->primes[i]);
+        }
+        printf("\n");
         if (rc) {
             printf("ERROR: return code from pthread_join() for thread %ld is %d\n", t, rc);
             exit(t);
@@ -99,7 +119,7 @@ int main(int argc, char* argv[]) {
     int interval_len = (arg->max_intval - arg->min_intval) / np;
     int reminder = 0;
     printf("Master: Started.\n");
-    for (int i = 0; i < np; i++)  // loop will run n times (n=5)
+    for (int i = 0; i < np; i++)  // loop will run n times (n=np)
     {
         if (fork() == 0) {
             arg->pid = i + 1;
