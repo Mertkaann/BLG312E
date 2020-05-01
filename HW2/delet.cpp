@@ -4,6 +4,7 @@
 #include <bits/stdc++.h>
 
 #define mem(a, b) (2000 + ((b - a) / 1000 + 1) * 82)
+int* ShmPTR;
 //2000 + ((b - a) / 1000 + 1) * 82
 using namespace std;
 
@@ -24,9 +25,11 @@ int main() {
     // Print display message
     cout << "\nPrime numbers between "
          << a << " and " << b << " are: ";
-
+    int memory = mem(a, b);
+    ShmPTR = (int*)malloc(memory * sizeof(pthread_t));
     // Traverse each number in the interval
     // with the help of for loop
+    int cur = 0;
     for (i = a; i <= b; i++) {
         // Skip 0 and 1 as they are
         // niether prime nor composite
@@ -48,18 +51,24 @@ int main() {
         // and flag = 0 means i is not prime
         if (flag == 1) {
             count++;
-            //cout << i << " ";
+            ShmPTR[cur++] = i;
         }
-        if (i % 10000 == 0) {
-            cout << count << " " << mem(a, i) << " " << falses << endl;
-        }
+
         if (mem(a, i) <= count) {
             falses++;
         }
+        if (i % 10000 == 0)
+            ;  //cout << "false: " << falses << " " << i << endl;
     }
-    cout << "\n\n"
+    cout << "\n\ncounted "
          << count << " " << b - a << " " << mem(a, b) << "\n\n";
     cout << falses << endl;
+
+    for (int i = 0; i < memory; i++) {
+        if (ShmPTR[i] != 0)
+            printf("%d, ", ShmPTR[i]);
+    }
+    cout << "counted " << count << endl;
     return 0;
 }
 
