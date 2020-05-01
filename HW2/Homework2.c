@@ -130,11 +130,12 @@ int main(int argc, char* argv[]) {
     struct args *arg, arge;
     arg = &arge;
     void* status;
-
+	
     sscanf(argv[1], "%d", &arg->min_intval);
     sscanf(argv[2], "%d", &arg->max_intval);
     sscanf(argv[3], "%d", &np);
     sscanf(argv[4], "%d", &nt);
+
     int memory = mem(arg->min_intval, arg->max_intval);
     int ShmID;
     ShmID = shmget(IPC_PRIVATE, memory * sizeof(long), IPC_CREAT | 0666);
